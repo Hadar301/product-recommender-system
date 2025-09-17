@@ -12,7 +12,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 BASE_IMAGE = os.getenv(
-    "BASE_REC_SYS_IMAGE", "quay.io/rh-ai-quickstart/recommendation-core:latest"
+    "BASE_REC_SYS_IMAGE", "quay.io/hacohen/recommendation-core:test"
 )
 
 
@@ -211,7 +211,7 @@ def generate_candidates(
     # item_text_features_embed["product_name"] = (
     #    proccessed_items["text_features"].detach()[:, 0, :].numpy().tolist()
     # )
-    item_text_features_embed["product_name"] = (
+    item_text_features_embed["product_name_embeddings"] = (
         proccessed_items["text_features"].detach()[:, 0, :].numpy().tolist()
     )
     item_text_features_embed["about_product_embedding"] = (

@@ -1,11 +1,15 @@
 from datetime import timedelta
 
-from data_sources import (interactions_source,
-                          item_clip_features_embed_push_source,
-                          item_embed_push_source,
-                          item_textual_features_embed_push_source,
-                          items_source, user_embed_push_source,
-                          user_items_push_source, users_source)
+from data_sources import (
+    interactions_source,
+    item_clip_features_embed_push_source,
+    item_embed_push_source,
+    item_textual_features_embed_push_source,
+    items_source,
+    user_embed_push_source,
+    user_items_push_source,
+    users_source,
+)
 from entities import item_entity, user_entity
 from feast import FeatureView, Field
 from feast.types import Array, Float32, Float64, Int64, String
@@ -165,12 +169,8 @@ item_textual_features_embed_view = FeatureView(
     ttl=timedelta(days=365 * 5),
     schema=[
         Field(name="item_id", dtype=String),
-        Field(
-            name="about_product_embedding",
-            dtype=Array(Float32),
-            vector_index=True,
-            vector_search_metric="cosine",
-        ),
+        Field(name="about_product_embedding", dtype=Array(Float32), vector_index=True, vector_search_metric="cosine"),
+        Field(name="product_name_embedding", dtype=Array(Float32), vector_index=False),
     ],
     source=item_textual_features_embed_push_source,
     online=True,
