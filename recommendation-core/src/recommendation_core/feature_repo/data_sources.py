@@ -70,7 +70,7 @@ item_textual_features_embed_push_source = PushSource(
 )
 
 item_name_features_embed_push_source = PushSource(
-    name="item_product_name_embed",
+    name="item_name_features_embed",
     batch_source=item_name_features_embed_dummy_source,
 )
 
