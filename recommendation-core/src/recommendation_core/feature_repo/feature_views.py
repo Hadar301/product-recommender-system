@@ -170,7 +170,7 @@ item_textual_features_embed_view = FeatureView(
     schema=[
         Field(name="item_id", dtype=String),
         Field(name="about_product_embedding", dtype=Array(Float32), vector_index=True, vector_search_metric="cosine"),
-        Field(name="product_name_embedding", dtype=Array(Float32), vector_index=False),
+        Field(name="product_name_embedding", dtype=Array(Float32)),
     ],
     source=item_textual_features_embed_push_source,
     online=True,
