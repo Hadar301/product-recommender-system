@@ -157,7 +157,7 @@ user_items_view = FeatureView(
     ttl=timedelta(days=365 * 5),
     schema=[
         Field(name="user_id", dtype=String),
-        Field(name="top_k_item_ids", dtype=Array(String), vector_index=False),
+        Field(name="top_k_item_ids", dtype=Array(String)),
     ],
     source=user_items_push_source,
     online=True,
