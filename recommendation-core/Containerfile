@@ -14,7 +14,7 @@ COPY src/recommendation_core/models/__init__.py src/recommendation_core/models/_
 COPY src/recommendation_core/service/__init__.py src/recommendation_core/service/__init__.py
 
 
-# Install the package after copying source code
+# Install the package after copying init files
 RUN uv pip install .
 
 
