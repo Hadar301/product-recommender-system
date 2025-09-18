@@ -11,9 +11,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-BASE_IMAGE = os.getenv(
-    "BASE_REC_SYS_IMAGE", "quay.io/rh-ai-quickstart/recommendation-core:latest"
-)
+BASE_IMAGE = os.getenv("BASE_REC_SYS_IMAGE", "quay.io/rh-ai-quickstart/recommendation-core:latest")
 
 
 @dsl.component(base_image=BASE_IMAGE)
@@ -52,15 +50,23 @@ def generate_candidates(
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     device = torch.device("cpu")
     logger.debug("models_definition items")
-    logger.debug(f"models_definition['items_num_numerical']: {models_definition['items_num_numerical']}")
-    logger.debug(f"models_definition['items_num_categorical']: {models_definition['items_num_categorical']}")
+    logger.debug(
+        f"models_definition['items_num_numerical']: {models_definition['items_num_numerical']}"
+    )
+    logger.debug(
+        f"models_definition['items_num_categorical']: {models_definition['items_num_categorical']}"
+    )
     item_encoder = EntityTower(
         models_definition["items_num_numerical"],
         models_definition["items_num_categorical"],
     )
     logger.debug("models_definition users")
-    logger.debug(f"models_definition['users_num_numerical']: {models_definition['users_num_numerical']}")
-    logger.debug(f"models_definition['users_num_categorical']: {models_definition['users_num_categorical']}")
+    logger.debug(
+        f"models_definition['users_num_numerical']: {models_definition['users_num_numerical']}"
+    )
+    logger.debug(
+        f"models_definition['users_num_categorical']: {models_definition['users_num_categorical']}"
+    )
     user_encoder = EntityTower(
         models_definition["users_num_numerical"],
         models_definition["users_num_categorical"],
@@ -86,7 +92,7 @@ def generate_candidates(
     logger.debug("proccessed_items")
     for key, value in proccessed_items.items():
         logger.debug(f"proccessed_items[{key}]: {type(value)}")
-        if hasattr(value, 'shape'):
+        if hasattr(value, "shape"):
             logger.debug(f"proccessed_items[{key}]: {value.shape}")
         else:
             logger.debug(f"proccessed_items[{key}]: {len(value)}")
@@ -96,7 +102,7 @@ def generate_candidates(
     logger.debug("proccessed_users")
     for key, value in proccessed_users.items():
         logger.debug(f"proccessed_users[{key}]: {type(value)}")
-        if hasattr(value, 'shape'):
+        if hasattr(value, "shape"):
             logger.debug(f"proccessed_users[{key}]: {value.shape}")
         else:
             logger.debug(f"proccessed_users[{key}]: {len(value)}")
@@ -111,6 +117,7 @@ def generate_candidates(
         key: value.to(device) if isinstance(value, torch.Tensor) else value
         for key, value in proccessed_users.items()
     }
+
     # Ensure categorical indices are within embedding vocab
     def _sanitize_categorical(x, num_embeddings: int, name: str):
         if not isinstance(x, torch.Tensor):
@@ -122,7 +129,7 @@ def generate_candidates(
             logger.debug(
                 f"{name} categorical idx range after clamp: "
                 f"[{int(x.min().item())}, {int(x.max().item())}] "
-                f"vs allowed [0, {num_embeddings-1}]"
+                f"vs allowed [0, {num_embeddings - 1}]"
             )
         except Exception:
             pass
@@ -179,7 +186,7 @@ def generate_candidates(
                 "numerical_features": batch_numerical,
                 #"categorical_features": batch_categorical,
                 "text_features": batch_text,
-                "url_image": batch_url_images
+                "url_image": batch_url_images,
             }
 
             # Get embeddings for batch
@@ -210,23 +217,49 @@ def generate_candidates(
 
     # Store the embedding of text features for search by text
     item_text_features_embed = item_df[["item_id"]].copy()
-    # item_text_features_embed["product_name"] = (
-    #    proccessed_items["text_features"].detach()[:, 0, :].numpy().tolist()
-    # )
-    item_text_features_embed["product_name"] = (
+
+    item_text_features_embed["product_name_embedding"] = (
         proccessed_items["text_features"].detach()[:, 0, :].numpy().tolist()
     )
+
     item_text_features_embed["about_product_embedding"] = (
         proccessed_items["text_features"].detach()[:, 1, :].numpy().tolist()
     )
     item_text_features_embed["event_timestamp"] = current_time
 
-    store.push(
-        "item_textual_features_embed",
-        item_text_features_embed,
-        to=PushMode.ONLINE,
-        allow_registry_cache=False,
-    )
+    item_textual_features = item_text_features_embed.drop("product_name_embedding", axis=1)
+    item_name_features = item_text_features_embed.drop("about_product_embedding", axis=1)
+
+    logger.debug(f"item_textual_features columns: {item_textual_features.columns}")
+    logger.debug(f"item_name_feature columns: {item_name_features.columns}")
+
+    # Refresh registry to pick up updated feature view schemas
+    store.refresh_registry()
+    logger.debug("Registry refreshed before pushing text features")
+
+    logger.info("About to push to 'item_textual_features_embed' push source")
+    try:
+        store.push(
+            "item_textual_features_embed",
+            item_textual_features,
+            to=PushMode.ONLINE,
+            allow_registry_cache=False,
+        )
+        logger.info(f"pushed to item_textual_features_embed")
+    except Exception as e:
+        logger.error(f"failed to push to item_textual_features_embed with error: {e}")
+
+    logger.info("About to push to 'item_name_features_embed' push source")
+    try:
+        store.push(
+            "item_name_features_embed",
+            item_name_features,
+            to=PushMode.ONLINE,
+            allow_registry_cache=False,
+        )
+        logger.info(f"pushed to item_name_features_embed")
+    except Exception as e:
+        logger.error(f"failed to push to item_name_features_embed with error: {e}")
 
     # Store the embedding of clip features for search by image
     clip_encoder = ClipEncoder()
@@ -246,6 +279,7 @@ def generate_candidates(
             "user_items",
             "item_features",
             "item_textual_features_embed",
+            "item_name_features_embed",
         ],
     )
 
@@ -314,7 +348,10 @@ def train_model(
     interactions_df = pd.read_parquet(interaction_df_input.path)
 
     item_encoder, user_encoder, models_definition = create_and_train_two_tower(
-        items_df=items_df, users_df=users_df, interactions_df=interactions_df, return_model_definition=True
+        items_df=items_df,
+        users_df=users_df,
+        interactions_df=interactions_df,
+        return_model_definition=True,
     )
 
     torch.save(item_encoder.state_dict(), item_output_model.path)
@@ -455,8 +492,10 @@ def fetch_cluster_credentials() -> NamedTuple(
     ).stdout.strip()
 
     if not host_output:
-        error_message = (f"Model registry service '{mr_container}' is not available in namespace '{mr_namespace}'. "
-                         f"Please ensure the service is properly deployed and accessible.")
+        error_message = (
+            f"Model registry service '{mr_container}' is not available in namespace '{mr_namespace}'. "
+            f"Please ensure the service is properly deployed and accessible."
+        )
         logger.info(error_message)
         raise RuntimeError(error_message)
 
@@ -564,17 +603,17 @@ def load_data_from_feast(
             logger.error(f"Error reading users from database: {e}")
             stream_users_df = pd.DataFrame()
 
-
         logger.debug("Showing head of tables")
-        logger.debug(f"stream_users_df: \n{tb.tabulate(stream_users_df.head(), headers='keys', tablefmt='grid')}")
+        logger.debug(
+            f"stream_users_df: \n{tb.tabulate(stream_users_df.head(), headers='keys', tablefmt='grid')}"
+        )
         logger.debug("****************************************")
         logger.debug(f"user_df: \n{tb.tabulate(user_df.head(), headers='keys', tablefmt='grid')}")
-
 
         if not stream_users_df.empty:
             logger.debug(f"user_df columns: {user_df.columns}")
             logger.debug(f"stream_users_df columns: {stream_users_df.columns}")
-            stream_users_df['signup_date'] = pd.to_datetime(stream_users_df['signup_date'])
+            stream_users_df["signup_date"] = pd.to_datetime(stream_users_df["signup_date"])
             logger.info(f"Adding {len(stream_users_df)} users to user_df")
             user_df = pd.concat([user_df, stream_users_df], axis=0)
             logger.debug(f"user_df columns: {user_df.columns}")
@@ -592,7 +631,9 @@ def load_data_from_feast(
             stream_positive_inter_df = pd.DataFrame()
 
         if not stream_positive_inter_df.empty:
-            logger.info(f"Adding {len(stream_positive_inter_df)} positive interactions to interaction_df")
+            logger.info(
+                f"Adding {len(stream_positive_inter_df)} positive interactions to interaction_df"
+            )
             interaction_df = pd.concat([interaction_df, stream_positive_inter_df], axis=0)
         else:
             logger.info("No new positive interactions found in database")
@@ -602,7 +643,7 @@ def load_data_from_feast(
     item_df.to_parquet(item_df_output.path)
     user_df.to_parquet(user_df_output.path)
     logger.info(f"num of interactions: {len(interaction_df)}")
-    interaction_df = interaction_df.head(5000)
+    interaction_df = interaction_df.head(500)
     interaction_df.to_parquet(interaction_df_output.path)
     logger.info(
         f"Saved {len(item_df)} items for {len(user_df)} users with {len(interaction_df)} interactions"
@@ -667,10 +708,12 @@ def batch_recommendation():
     )  # if set to true, the task will be cached and the credentials will not be updated.
 
     fetch_api_credentials_task.set_env_variable(
-        name="MODEL_REGISTRY_NAMESPACE", value=os.getenv("MODEL_REGISTRY_NAMESPACE", "rhoai-model-registries")
+        name="MODEL_REGISTRY_NAMESPACE",
+        value=os.getenv("MODEL_REGISTRY_NAMESPACE", "rhoai-model-registries"),
     )
     fetch_api_credentials_task.set_env_variable(
-        name="MODEL_REGISTRY_CONTAINER", value=os.getenv("MODEL_REGISTRY_CONTAINER", "modelregistry-sample")
+        name="MODEL_REGISTRY_CONTAINER",
+        value=os.getenv("MODEL_REGISTRY_CONTAINER", "modelregistry-sample"),
     )
 
     train_model_task = train_model(
@@ -772,7 +815,6 @@ def batch_recommendation():
     generate_candidates_task.set_memory_request("2000Mi")
     generate_candidates_task.set_cpu_limit("3000m")
     generate_candidates_task.set_memory_limit("3000Mi")
-
 
 
 if __name__ == "__main__":
