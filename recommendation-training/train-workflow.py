@@ -641,7 +641,7 @@ def load_data_from_feast(
     item_df.to_parquet(item_df_output.path)
     user_df.to_parquet(user_df_output.path)
     logger.info(f"num of interactions: {len(interaction_df)}")
-    interaction_df = interaction_df.head(500)
+    interaction_df = interaction_df.head(5000)
     interaction_df.to_parquet(interaction_df_output.path)
     logger.info(
         f"Saved {len(item_df)} items for {len(user_df)} users with {len(interaction_df)} interactions"
