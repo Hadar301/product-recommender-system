@@ -11,7 +11,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-BASE_IMAGE = os.getenv("BASE_REC_SYS_IMAGE", "quay.io/rh-ai-quickstart/recommendation-core:latest")
+BASE_IMAGE = os.getenv("BASE_REC_SYS_IMAGE", "quay.io/hacohen/recommendation-core:latest")
 
 
 @dsl.component(base_image=BASE_IMAGE)
