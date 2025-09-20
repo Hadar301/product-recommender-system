@@ -126,7 +126,6 @@ class SearchService:
         self.model.eval()
 
     def _get_item_ids(self) -> pd.DataFrame:
-        
         return pd.DataFrame({"item_id": _ITEM_IDS})
 
     def _get_free_text_embeddings(self, text: str) -> torch.Tensor:
@@ -188,7 +187,7 @@ class SearchService:
 
         logger.debug(f"all items df columns: {all_items_df.columns.tolist()}")
 
-        # Extract embedding data TODO: add category
+        # Extract embedding data
         about_product_embeddings_df = self.store.get_online_features(
             features=["item_textual_features_embed:about_product_embedding"],
             entity_rows=[{"item_id": item_id} for item_id in all_items_df["item_id"]],
@@ -199,19 +198,29 @@ class SearchService:
             entity_rows=[{"item_id": item_id} for item_id in all_items_df["item_id"]],
         ).to_df()
 
+        category_embeddings_df = self.store.get_online_features(
+            features=["item_category_features_embed:category_embedding"],
+            entity_rows=[{"item_id": item_id} for item_id in all_items_df["item_id"]],
+        ).to_df()
+
         # Extract the embedding arrays from the DataFrame columns
         about_product_embeddings = about_product_embeddings_df["about_product_embedding"].values
         product_name_embeddings = product_name_embeddings_df["product_name_embedding"].values
+        category_embeddings = category_embeddings_df["category_embedding"].values
 
-        # Get the tensors TODO: Insert here product_category_tensor
+        # Get the tensors
         about_product_tensor = torch.tensor(
             np.stack(about_product_embeddings), dtype=torch.float32
         )
         product_name_tensor = torch.tensor(np.stack(product_name_embeddings), dtype=torch.float32)
+        category_tensor = torch.tensor(np.stack(category_embeddings), dtype=torch.float32)
         logger.debug(f"shape of about_product_tensor: {about_product_tensor.shape}")
         logger.debug(f"shape of product_name_tensor: {product_name_tensor.shape}")
+        logger.debug(f"shape of category_tensor: {category_tensor.shape}")
 
-        items_embeddings = torch.stack([about_product_tensor, product_name_tensor], dim=1)
+        items_embeddings = torch.stack(
+            [about_product_tensor, product_name_tensor, category_tensor], dim=1
+        )
         logger.info(f"textual features has embeddings tensor of shape: {items_embeddings.shape}")
 
         free_text_embeddings = self._get_free_text_embeddings(text)
@@ -235,4 +244,3 @@ class SearchService:
         ).to_df()
 
         return values
-
