@@ -4,6 +4,8 @@ import torch
 from feast import FeatureStore
 from transformers import AutoModel, AutoTokenizer
 import logging
+import os
+from sqlalchemy import create_engine, text
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -126,7 +128,33 @@ class SearchService:
         self.model.eval()
 
     def _get_item_ids(self) -> pd.DataFrame:
-        return pd.DataFrame({"item_id": _ITEM_IDS})
+        return self._get_item_ids_from_db()
+
+    def _get_item_ids_from_db(self) -> pd.DataFrame:
+        """
+        Extract all item IDs from the products table in the database.
+
+        Returns:
+            pd.DataFrame: DataFrame with 'item_id' column containing all product IDs
+        """
+        try:
+            database_url = os.getenv("DATABASE_URL")
+            if not database_url:
+                logger.error("DATABASE_URL not set - cannot retrieve item IDs from database")
+                raise ValueError("DATABASE_URL environment variable is required")
+
+            engine = create_engine(database_url)
+
+            with engine.connect() as connection:
+                result = connection.execute(text("SELECT item_id FROM products"))
+                item_ids = [row[0] for row in result.fetchall()]
+
+            logger.info(f"Retrieved {len(item_ids)} item IDs from database")
+            return pd.DataFrame({"item_id": item_ids})
+
+        except Exception as e:
+            logger.error(f"Failed to retrieve item IDs from database: {e}")
+            raise e
 
     def _get_free_text_embeddings(self, text: str) -> torch.Tensor:
         encoded_input = self.tokenizer(
