@@ -23,9 +23,8 @@ MINIMUM_USERID_LENGTH = 3
 MINIMUM_PASSWORD_LENGTH = 8
 REQUIRED_PARAMS = minio.userId minio.password
 # Model configuration defaults
-OLLAMA_MODEL ?= meta-llama/Llama-3.1-8B-Instruct
-MODEL_ENDPOINT ?= https://llama-3-1-8b-instruct-predictor-kickstart-llms.apps.ai-dev02.kni.syseng.devcluster.openshift.com/v1
-
+OLLAMA_MODEL ?= redhataillama-31-8b-instruct
+MODEL_ENDPOINT ?= https://redhataillama-31-8b-instruct-quickstart-llms.apps.ai-dev02.kni.syseng.devcluster.openshift.com
 # Helm argument helpers
 helm_pgvector_args = \
 	--set pgvector.secret.user=$(POSTGRES_USER) \
@@ -43,7 +42,7 @@ model_args = \
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "  install       - Installs recommender system and supporting resources; provide userId and password for minio; e.g., make install minio.userId=fred minio.password=pass1"
+	@echo "  install       - Installs recommender system and supporting resources; provide userId and password for minio; e.g., make install minio.userId=minio minio.password=minio123"
 	@echo "  uninstall     - Uninstall the recommender system app and clean up resources"
 	@echo "  status        - Check status of the deployment"
 	@echo ""

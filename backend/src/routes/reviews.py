@@ -18,12 +18,12 @@ router = APIRouter(prefix="/products", tags=["reviews"])
 MODEL_ENDPOINT = (
     os.getenv(
         "MODEL_ENDPOINT",
-        "https://llama-3-1-8b-instruct-predictor-kickstart-llms.apps.ai-dev02.kni.syseng.devcluster.openshift.com/v1",  # noqa: E501
+        "https://redhataillama-31-8b-instruct-quickstart-llms.apps.ai-dev02.kni.syseng.devcluster.openshift.com",  # noqa: E501
     )
-    + "/chat/completions"
+    + "/v1/chat/completions"
 )
 
-MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
+MODEL_NAME = os.getenv("OLLAMA_MODEL", "redhataillama-31-8b-instruct")
 
 
 async def _check_product_exists(product_id: str, db: AsyncSession) -> None:
