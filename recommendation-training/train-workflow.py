@@ -650,8 +650,6 @@ def batch_recommendation():
     load_data_task.set_memory_request("2000Mi")
     load_data_task.set_cpu_limit("3000m")
     load_data_task.set_memory_limit("3000Mi")
-    load_data_task.set_ephemeral_storage_request("10Gi")
-    load_data_task.set_ephemeral_storage_limit("15Gi")
 
     train_model_task = train_model(
         item_df_input=load_data_task.outputs["item_df_output"],
@@ -664,8 +662,6 @@ def batch_recommendation():
     train_model_task.set_memory_request("2000Mi")
     train_model_task.set_cpu_limit("3000m")
     train_model_task.set_memory_limit("3000Mi")
-    train_model_task.set_ephemeral_storage_request("10Gi")
-    train_model_task.set_ephemeral_storage_limit("15Gi")
 
     train_model_task.set_caching_options(False)
     kubernetes.use_secret_as_env(
@@ -724,13 +720,11 @@ def batch_recommendation():
     )
     generate_candidates_task.set_caching_options(False)
 
-    # setting resource requests and limits - TODO: use from environment variables    # setting resource requests and limits - TODO: use from environment variables
+    # setting resource requests and limits - TODO: use from environment variables
     generate_candidates_task.set_cpu_request("2000m")
     generate_candidates_task.set_memory_request("2000Mi")
     generate_candidates_task.set_cpu_limit("3000m")
     generate_candidates_task.set_memory_limit("3000Mi")
-    generate_candidates_task.set_ephemeral_storage_request("15Gi")
-    generate_candidates_task.set_ephemeral_storage_limit("20Gi")
 
 
 if __name__ == "__main__":
