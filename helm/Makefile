@@ -23,8 +23,8 @@ MINIMUM_USERID_LENGTH = 3
 MINIMUM_PASSWORD_LENGTH = 8
 REQUIRED_PARAMS = minio.userId minio.password
 # Model configuration defaults
-OLLAMA_MODEL ?= redhataillama-31-8b-instruct
-MODEL_ENDPOINT ?= https://redhataillama-31-8b-instruct-quickstart-llms.apps.ai-dev02.kni.syseng.devcluster.openshift.com
+OLLAMA_MODEL ?= llama-31-8b-instruct
+MODEL_ENDPOINT ?= https://llama-31-8b-instruct-samouelian-eck.apps.ai-dev01.kni.syseng.devcluster.openshift.com
 # Helm argument helpers
 helm_pgvector_args = \
 	--set pgvector.secret.user=$(POSTGRES_USER) \

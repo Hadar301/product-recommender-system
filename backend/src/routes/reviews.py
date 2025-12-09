@@ -23,7 +23,7 @@ MODEL_ENDPOINT = (
     + "/v1/chat/completions"
 )
 
-MODEL_NAME = os.getenv("OLLAMA_MODEL", "redhataillama-31-8b-instruct")
+MODEL_NAME = os.getenv("OLLAMA_MODEL", "llama-31-8b-instruct")
 
 
 async def _check_product_exists(product_id: str, db: AsyncSession) -> None:

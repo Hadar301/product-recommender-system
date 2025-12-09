@@ -726,6 +726,14 @@ def batch_recommendation():
     generate_candidates_task.set_cpu_limit("3000m")
     generate_candidates_task.set_memory_limit("3000Mi")
 
+    # Add emptyDir volume with size limit for temporary storage needs
+    kubernetes.use_empty_dir_mount(
+        task=generate_candidates_task,
+        volume_name="tmp-storage",
+        mount_path="/tmp/kfp-storage",
+        size_limit="20Gi"
+    )
+
 
 if __name__ == "__main__":
     pipeline_yaml = __file__.replace(".py", ".yaml")
