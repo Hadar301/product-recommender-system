@@ -136,7 +136,7 @@ pipeline-server-install:
 
 .PHONY: create-dynamic-secret
 create-dynamic-secret:
-	@echo "Creating backward compatible secret for dspa settings (temporary workaround)"
+	@echo "Creating backward compatible secret for dspa settings"
 	$(eval MINIO_SERVICE_HOST = $(shell oc get svc minio-service -n $(NAMESPACE) -o=jsonpath='{.spec.clusterIP}'))
 	$(eval MINIO_SERVICE_PORT = $(shell oc get svc minio-service -n $(NAMESPACE) -o=jsonpath='{.spec.ports[?(@.name=="api")].port}'))
 	$(eval MINIO_ACCESS_KEY_VALUE = $(shell oc get secret minio-secret -n $(NAMESPACE) -o jsonpath='{.data.MINIO_ROOT_USER}' | base64 --decode))
