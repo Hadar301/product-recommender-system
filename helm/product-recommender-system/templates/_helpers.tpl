@@ -79,10 +79,6 @@ metadata:
     pipelines.kubeflow.org/v2_component: 'true'
 spec:
   serviceAccountName: pipeline-runner-dspa
-  tolerations:
-    - key: node.kubernetes.io/disk-pressure
-      operator: Exists
-      effect: NoExecute
   initContainers:
     - name: wait-for-pipeline
       image: {{ .Values.pipelineJobImage }}
