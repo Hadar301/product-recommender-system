@@ -726,6 +726,15 @@ def batch_recommendation():
     generate_candidates_task.set_cpu_limit("3000m")
     generate_candidates_task.set_memory_limit("3000Mi")
 
+    # Add toleration for nodes with disk pressure to avoid eviction
+    # This allows the task to continue running even when the node has low ephemeral storage
+    kubernetes.add_toleration(
+        task=generate_candidates_task,
+        key="node.kubernetes.io/disk-pressure",
+        operator="Exists",
+        effect="NoExecute"
+    )
+
 
 if __name__ == "__main__":
     pipeline_yaml = __file__.replace(".py", ".yaml")
