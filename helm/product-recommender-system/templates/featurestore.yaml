@@ -33,6 +33,10 @@ spec:
       url: https://github.com/rh-ai-quickstart/product-recommender-system
       ref: main
       featureRepoPath: recommendation-core/src/recommendation_core/feature_repo
+  podTolerations:
+    - key: node.kubernetes.io/disk-pressure
+      operator: Exists
+      effect: NoExecute
   services:
     offlineStore:
       persistence:
@@ -93,6 +97,10 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      tolerations:
+        - key: node.kubernetes.io/disk-pressure
+          operator: Exists
+          effect: NoExecute
       initContainers:
         - name: wait-for-reg
           image: {{ .Values.applicationImage }}
