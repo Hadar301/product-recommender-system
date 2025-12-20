@@ -489,7 +489,8 @@ def train_model(
 
 
 
-@dsl.component(base_image=BASE_IMAGE, packages_to_install=["psycopg2-binary"])
+@dsl.component(base_image=BASE_IMAGE, 
+               packages_to_install=["psycopg2-binary"])
 def load_data_from_feast(
     item_df_output: Output[Dataset],
     user_df_output: Output[Dataset],
@@ -526,6 +527,7 @@ def load_data_from_feast(
         # with force_load true, to align the parquet files
         dataset_provider = RemoteDatasetProvider(dataset_url, force_load=True)
     else:
+        # code takes this path
         logger.info("using pre generated dataset")
         dataset_provider = LocalDatasetProvider(store)
 
@@ -584,7 +586,7 @@ def load_data_from_feast(
             logger.info(
                 f"Adding {len(stream_positive_inter_df)} positive interactions to interaction_df"
             )
-            interaction_df = pd.concat([interaction_df, stream_positive_inter_df], axis=0)
+            interaction_df = pd.concat([interaction_df.head(5000), stream_positive_inter_df], axis=0)
         else:
             logger.info("No new positive interactions found in database")
 
@@ -593,7 +595,10 @@ def load_data_from_feast(
     item_df.to_parquet(item_df_output.path)
     user_df.to_parquet(user_df_output.path)
     logger.info(f"num of interactions: {len(interaction_df)}")
-    interaction_df = interaction_df.head(5000)
+    # Next line will speed up training but may exclude interactions for newly registered users
+    # We can sort the interactions to somewhat help but leave commented for now
+    # For now we can put cap the limit above before the stored and streamed interactions are concatenated.
+    # interaction_df = interaction_df.head(5000)
     interaction_df.to_parquet(interaction_df_output.path)
     logger.info(
         f"Saved {len(item_df)} items for {len(user_df)} users with {len(interaction_df)} interactions"
