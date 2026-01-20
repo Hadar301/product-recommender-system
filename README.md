@@ -100,7 +100,32 @@ make uninstall NAMESPACE=<ns>
 
 ## Additional details
 
-### Configuration you’ll change most often
+### RHOAI 3.0 Model Deployment Steps
+
+<img src="docs/images/catalog.png" alt="Model Catalog" width="80%">
+
+1. **Open Catalog**: In the left-hand menu, select **AI Hub > Catalog**. Choose the model you wish to deploy and click **Deploy model**.
+
+2. **Configure Deployment**: In the deployment dialog, select your project and configure:
+   - **Resource Name**: Note the pre-populated name; you will need this later.
+   - **Serving Runtime**: Select the runtime appropriate for your hardware (e.g., vLLM NVIDIA GPU ServingRuntime for KServe).
+   - **Deployment Mode**: Choose KServe RawDeployment (unless scale-to-zero is required).
+   - **Replicas & Size**: Set the number of replicas (e.g., 1) and server size (e.g., Medium) based on pod requirements.
+   - **Accelerator**: Specify the hardware (e.g., A10G NVIDIA GPU) and count.
+   - **Authentication & Access**:
+     - Check *Make deployed models available through an external route* for outside access.
+     - Check *Require token authentication*. Always enable this for external routes and store the token securely.
+   - **Configuration Parameters**: Add required flags (e.g., `--max-model-len=8096 --task=generate --trust_remote_code`). Refer to the [Red Hat AI Inference Server documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.0/html/deploying_models/deploying_models) for details.
+
+3. **Deploy**: Click **Deploy**.
+
+4. **Retrieve Endpoints**: Once deployed, go to **Data Science Projects**, select your project, and click the **Models** tab.
+   - Click *Internal and external endpoint* to view the URLs. Record both, as some client applications cannot resolve internal cluster addresses.
+   - Expand the model list item (using the arrow on the left) and scroll down to copy the **Token authentication** value.
+
+Your model is now ready. Use the endpoint URL, authentication token, and resource name in the `make install` command.
+
+### Configuration you'll change most often
 - Images
   - Backend+Frontend: `frontendBackendImage` in `helm/product-recommender-system/values.yaml`
   - Training: `pipelineJobImage` (training container image)
