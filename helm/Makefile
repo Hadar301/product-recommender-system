@@ -23,7 +23,7 @@ MINIMUM_USERID_LENGTH = 3
 MINIMUM_PASSWORD_LENGTH = 8
 REQUIRED_PARAMS = minio.userId minio.password
 # Model configuration defaults
-OLLAMA_MODEL ?= llama-31-8b-instruct
+MODEL_NAME ?= llama-31-8b-instruct
 MODEL_ENDPOINT ?= https://llama-31-8b-instruct-samouelian-eck.apps.ai-dev01.kni.syseng.devcluster.openshift.com
 # Helm argument helpers
 helm_pgvector_args = \
@@ -35,7 +35,7 @@ dataset_args = \
 	--set datasetUrl=$(DATASET_URL)
 
 model_args = \
-	--set llmModel.ollamaModel=$(OLLAMA_MODEL) \
+	--set llmModel.ollamaModel=$(MODEL_NAME) \
 	--set llmModel.modelEndpoint=$(MODEL_ENDPOINT)
 
 # Default target
@@ -50,7 +50,7 @@ help:
 	@echo "  NAMESPACE                - Target namespace"
 	@echo "  minio.userId             - User ID to use for minio installation"
 	@echo "  minio.password           - Password to use for minio installation"
-	@echo "  OLLAMA_MODEL             - Ollama model to use (default: meta-llama/Llama-3.1-8B-Instruct)"
+	@echo "  MODEL_NAME             - Ollama model to use (default: meta-llama/Llama-3.1-8B-Instruct)"
 	@echo "  MODEL_ENDPOINT           - Model endpoint URL"
 
 # Older version of oc will raise error processing some of the commands in this make file; enforce a minimum version
