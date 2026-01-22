@@ -76,9 +76,11 @@ cd product-recommender-system/helm
 
 2) Install
 ```bash
-make install NAMESPACE=<namespace> minio.userId=<minio user Id> minio.password=<minio password> MODEL_NAME=<ollama model name> MODEL_ENDPOINT=<http://model-url.com/v1>
+make install NAMESPACE=<namespace> minio.userId=<minio user Id> minio.password=<minio password> MODEL_NAME=<model resource name> MODEL_ENDPOINT=<http://model-url.com/v1>
 ```
 This deploys: Postgres+pgvector, Feast registry/secret, backend, frontend, and the training pipeline server.
+
+Note: You must also provide the api key for your model in the helm/product-recommender-system/values.yaml file (see SUMMARY_LLM_API_KEY in the values.yaml file)
 
 3) Access routes (after pods Ready)
 ```bash
@@ -123,16 +125,16 @@ make uninstall NAMESPACE=<ns>
    - Click *Internal and external endpoint* to view the URLs. Record both, as some client applications cannot resolve internal cluster addresses.
    - Expand the model list item (using the arrow on the left) and scroll down to copy the **Token authentication** value.
 
-Your model is now ready. Use the endpoint URL, authentication token, and resource name in the `make install` command.
+Your model is now ready. Use the endpoint URL and resource name in the `make install` command. 
+IMPORTANT: Put the authentication key in your helm/product-recommender-system/values.yaml file (see SUMMARY_LLM_API_KEY in the values.yaml file).
 
 ### Configuration you'll change most often
 - Images
   - Backend+Frontend: `frontendBackendImage` in `helm/product-recommender-system/values.yaml`
   - Training: `pipelineJobImage` (training container image)
   - Core library (as a base in backend image): `applicationImage` (if used)
-- LLM for review generation (optional)
-  - Set `llm.secret.data.LLM_API_KEY` (or bring your own secret)
-  - Backend env: `USE_LLM_FOR_REVIEWS`, `LLM_API_BASE`, `LLM_MODEL`, `LLM_TIMEOUT`
+- LLM for review summarization
+  - Set `llm.secret.data.SUMMARY_LLM_API_KEY` (or bring your own secret)
 - Database/Feast integration
   - DB connection comes from the `pgvector` secret (created by the chart)
   - Feast TLS secret name: `feast-feast-recommendation-registry-tls` (mounted in backend & training)
